@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MatrizSolve - Solucionador de Álgebra Lineal</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Iconos Lucide opcionales -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- MathJax for rendering step-by-step LaTeX formulas cleanly -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Google Fonts: Inter & Fira Code -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-full font-sans transition-colors duration-200 flex flex-col">
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+          <i data-lucide="book-open-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+            MatrizSolve <span class="bg-sky-100 text-sky-800 dark:bg-sky-900/60 dark:text-sky-300 text-xs px-2 py-0.5 rounded-full font-semibold">Pro Rúbrica v3.0</span>
+          </h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Plataforma Académica de Álgebra Lineal</p>
+        </div>
+      </div>
+
+      <!-- Quick Actions / Theme Toggle -->
+      <div class="flex items-center gap-2">
+        <button onclick="window.print()" class="no-print flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 transition">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Imprimir / Guardar PDF</span>
+        </button>
+
+        <button onclick="openPresetsModal()" class="no-print flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 dark:text-indigo-300 rounded-lg border border-indigo-200 dark:border-indigo-800 transition">
+          <i data-lucide="briefcase" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Casos Prácticos</span>
+        </button>
+
+        <button onclick="toggleDarkMode()" class="no-print p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+          <i data-lucide="sun" class="w-4 h-4 hidden dark:block"></i>
+          <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN NAVIGATION TABS -->
+  <div class="no-print bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-4 overflow-x-auto text-xs font-semibold">
+      <button id="nav-editor" onclick="switchMainTab('editor')" class="py-3 px-2 border-b-2 border-sky-500 text-sky-600 dark:text-sky-400 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="edit-3" class="w-4 h-4"></i> Editor de matrices
+      </button>
+      <button id="nav-steps" onclick="switchMainTab('steps')" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="list-ordered" class="w-4 h-4"></i> Resolución Paso a Paso
+      </button>
+      <button id="nav-sarrus" onclick="switchMainTab('sarrus')" class="py-3 px-2 border-b-2 border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap">
+        <i data-lucide="grid" class="w-4 h-4"></i> Regla de Sarrus (Determinantes 3x3)
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
+
+    <!-- TAB 1: EDITOR & TEXT EXTRACTOR -->
+    <div id="section-editor" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- LEFT COLUMN: INPUT CONTROLS & MATRIX EDITOR -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- CARD: INPUT SELECTION -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800">
+          
+          <!-- TAB HEADERS -->
+          <div class="flex p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl mb-4 text-xs font-semibold">
+            <button id="tab-interactive" onclick="switchInputTab('interactive')" class="flex-1 py-2 rounded-lg text-center transition shadow-sm bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100">
+              <i data-lucide="table" class="w-3.5 h-3.5 inline mr-1"></i> Editor Numérico
+            </button>
+            <button id="tab-text" onclick="switchInputTab('text')" class="flex-1 py-2 rounded-lg text-center transition text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 inline mr-1"></i> Sistema desde ecuaciones
+            </button>
+          </div>
+
+          <!-- VIEW 1: INTERACTIVE MATRIX GRID -->
+          <div id="view-interactive" class="space-y-4">
+            
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">Dimensión $A$:</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs font-mono">F:</span>
+                  <button onclick="changeDimensions(-1, 0)" class="w-6 h-6 bg-white dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600 text-xs flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-600 font-bold">-</button>
+                  <span id="dim-rows-display" class="font-mono text-sm font-semibold w-4 text-center">3</span>
+                  <button onclick="changeDimensions(1, 0)" class="w-6 h-6 bg-white dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600 text-xs flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-600 font-bold">+</button>
+                </div>
+
+                <div class="flex items-center gap-1 ml-2">
+                  <span class="text-xs font-mono">C:</span>
+                  <button onclick="changeDimensions(0, -1)" class="w-6 h-6 bg-white dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600 text-xs flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-600 font-bold">-</button>
+                  <span id="dim-cols-display" class="font-mono text-sm font-semibold w-4 text-center">3</span>
+                  <button onclick="changeDimensions(0, 1)" class="w-6 h-6 bg-white dark:bg-slate-700 rounded border border-slate-300 dark:border-slate-600 text-xs flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-600 font-bold">+</button>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-1">
+                <button onclick="fillRandomMatrix()" class="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded hover:bg-slate-300 dark:hover:bg-slate-600 transition" title="Valores al azar">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 inline"></i> Azar
+                </button>
+                <button onclick="clearMatrixValues()" class="text-xs px-2 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 rounded hover:bg-rose-200 dark:hover:bg-rose-900 transition" title="Limpiar">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- PRESETS DE MATRICES ESPECIALES -->
+            <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              <span class="mr-1">Plantillas:</span>
+              <button onclick="loadSpecialMatrix('identity')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 transition">Identidad</button>
+              <button onclick="loadSpecialMatrix('diagonal')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 transition">Diagonal</button>
+              <button onclick="loadSpecialMatrix('triangular')" class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 transition">Triangular</button>
+            </div>
+
+            <div class="overflow-x-auto p-3 bg-slate-100/70 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800">
+              <div class="flex items-center justify-center gap-3 min-w-max">
+                <div>
+                  <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1 text-center">Matriz de Coeficientes [A]</div>
+                  <div id="grid-matrix-a" class="matrix-input-grid"></div>
+                </div>
+
+                <div class="text-lg font-bold text-slate-400 self-center pt-5">=</div>
+
+                <div>
+                  <div class="text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1 text-center">Independientes [B]</div>
+                  <div id="grid-vector-b" class="flex flex-col gap-1.5"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIEW 2: ADVANCED TEXT EXTRACTOR -->
+          <div id="view-text" class="hidden space-y-3">
+            <div class="p-3 bg-sky-50 dark:bg-sky-950/40 rounded-xl border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300 leading-relaxed">
+              <strong>Analizador local de ecuaciones:</strong> Convierte sistemas escritos en texto sin conexión ni clave API. Escribe una ecuación por línea, por ejemplo <code>2x + y - z = 8</code>. Admite variables con letras, coeficientes decimales o fraccionarios y términos constantes.<br>
+              <em>Ejemplo: <code>2x + y - z = 8</code><br><code>-3x - y + 2z = -11</code><br><code>-2x + y + 2z = -3</code></em>
+            </div>
+            
+            <textarea id="text-input-area" rows="5" class="w-full p-3 font-mono text-xs bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="Escribe una ecuación por línea. Ejemplo: 2x + y - z = 8"></textarea>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button onclick="parseTextInputWithAI()" id="btn-parse-ai" class="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow transition flex items-center justify-center gap-2">
+                <i data-lucide="sparkles" class="w-4 h-4"></i> Interpretar ecuaciones
+              </button>
+              <button onclick="parseTextInput()" class="w-full py-2.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2">
+                <i data-lucide="code" class="w-4 h-4"></i> Extracción Rápida Local
+              </button>
+            </div>
+
+            <!-- AI RESULT EXPLANATION BOX -->
+            <div id="ai-nlp-explanation" class="hidden p-4 bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 rounded-xl text-xs space-y-3">
+              <div class="font-bold text-indigo-900 dark:text-indigo-200 flex items-center justify-between">
+                <span class="flex items-center gap-1.5 text-sm">
+                  <i data-lucide="bot" class="w-4 h-4 text-indigo-500"></i> Planteamiento del sistema
+                </span>
+                <span class="text-[10px] bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-semibold px-2 py-0.5 rounded-full">Análisis local</span>
+              </div>
+
+              <!-- Step-by-Step Problem Formulation Breakdown -->
+              <div id="ai-nlp-variables" class="text-slate-700 dark:text-slate-300 font-mono text-[11px] bg-white/70 dark:bg-slate-900/50 p-2.5 rounded-lg border border-indigo-100 dark:border-indigo-950"></div>
+              <div id="ai-nlp-equations" class="text-slate-700 dark:text-slate-300 bg-white/70 dark:bg-slate-900/50 p-2.5 rounded-lg border border-indigo-100 dark:border-indigo-950"></div>
+              
+              <div id="ai-nlp-step-explanation" class="text-slate-700 dark:text-slate-300 leading-relaxed bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800 space-y-2">
+                <div class="font-bold text-indigo-950 dark:text-indigo-200 flex items-center justify-between">
+                  <span class="flex items-center gap-1">
+                    <i data-lucide="book-open" class="w-3.5 h-3.5 text-sky-500"></i> Explicación Didáctica Paso a Paso:
+                  </span>
+                  <button onclick="jumpToExerciseExplanation()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-[11px] flex items-center gap-1 shadow-sm transition">
+                    <i data-lucide="arrow-down-circle" class="w-3.5 h-3.5"></i> Ir al ejercicio y explicar
+                  </button>
+                </div>
+                <div id="ai-explanation-text" class="text-xs text-slate-600 dark:text-slate-300 leading-normal"></div>
+              </div>
+
+              <!-- Tutor local de álgebra -->
+              <div class="pt-2 border-t border-indigo-200/60 dark:border-indigo-800/60 space-y-2">
+                <div class="font-bold text-indigo-900 dark:text-indigo-200 text-[11px] flex items-center gap-1.5">
+                  <i data-lucide="message-square-plus" class="w-3.5 h-3.5 text-indigo-500"></i> Tutor local: pregunta sobre el sistema y su solución
+                </div>
+                
+                <div id="ai-chat-history" class="max-h-48 overflow-y-auto space-y-2 text-[11px] pr-1"></div>
+
+                <div class="flex gap-2">
+                  <input type="text" id="ai-chat-input" placeholder="Ej: ¿Por qué la ecuación 2 iguala a 0?" onkeydown="if(event.key==='Enter') askAIFollowUpQuestion()" class="flex-1 p-2 font-sans text-xs bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                  <button onclick="askAIFollowUpQuestion()" id="btn-send-chat" class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-lg transition flex items-center gap-1">
+                    <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CARD: SOLVER SELECTION & EXECUTION -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
+          <h2 class="font-semibold text-sm text-slate-700 dark:text-slate-200 flex items-center gap-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-sky-500"></i> Seleccionar Método de Solución
+          </h2>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="executeSolver('gauss')" class="p-3 text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-300 dark:hover:border-sky-700 rounded-xl border border-slate-200 dark:border-slate-700/80 transition group">
+              <div class="font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                Eliminación Gaussiana
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Triangulación + Sustitución regresiva</div>
+            </button>
+
+            <button onclick="executeSolver('gauss-jordan')" class="p-3 text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-300 dark:hover:border-sky-700 rounded-xl border border-slate-200 dark:border-slate-700/80 transition group">
+              <div class="font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                Gauss-Jordan
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Matriz escalonada reducida (RREF)</div>
+            </button>
+
+            <button onclick="executeSolver('cramer')" class="p-3 text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-300 dark:hover:border-sky-700 rounded-xl border border-slate-200 dark:border-slate-700/80 transition group">
+              <div class="font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                Regla de Cramer
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Por determinantes ($D_x / D$)</div>
+            </button>
+
+            <button onclick="executeSolver('inverse')" class="p-3 text-left bg-slate-50 dark:bg-slate-800/60 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:border-sky-300 dark:hover:border-sky-700 rounded-xl border border-slate-200 dark:border-slate-700/80 transition group">
+              <div class="font-semibold text-xs text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400">
+                Matriz Inversa (Gauss-Jordan)
+              </div>
+              <div class="text-[10px] text-slate-500 mt-0.5">Mediante $[A \mid I]$</div>
+            </button>
+          </div>
+
+          <!-- SPECIAL FEATURE BUTTON: INVERSE VIA SARRUS + ADJOINT -->
+          <button onclick="executeSolver('inverse-sarrus')" class="w-full py-2.5 bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <i data-lucide="calculator" class="w-4 h-4"></i> Inversa por Cofactores / Adjunta (Sarrus en $3 \times 3$ o Laplace en $4 \times 4$)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: DIAGNOSTICS AND RESULTS -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <div id="case-context-card" class="hidden bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl p-4 border border-indigo-200 dark:border-indigo-800 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-sm text-indigo-900 dark:text-indigo-200"><i data-lucide="briefcase-business" class="w-4 h-4"></i><span id="case-context-title">Caso de aplicación</span></div>
+          <p id="case-context-description" class="text-xs leading-relaxed text-indigo-900 dark:text-indigo-200"></p>
+          <p id="case-context-equations" class="text-xs font-mono text-indigo-800 dark:text-indigo-300"></p>
+          <p id="case-context-note" class="text-[10px] text-indigo-700 dark:text-indigo-300"></p>
+        </div>
+
+        <!-- DIAGNOSTICS & SYSTEM ANALYSIS CARD -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <h2 class="font-semibold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-500"></i> Análisis del Sistema (Rouché-Frobenius)
+            </h2>
+            <span id="system-status-badge" class="px-2.5 py-1 text-[11px] font-semibold rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              Esperando entrada...
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+              <div class="text-[10px] font-semibold uppercase text-slate-400">Dimensión</div>
+              <div id="diag-dim" class="text-sm font-bold font-mono text-slate-700 dark:text-slate-200">3 x 3</div>
+            </div>
+            <div class="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+              <div class="text-[10px] font-semibold uppercase text-slate-400">Determinante |A|</div>
+              <div id="diag-det" class="text-sm font-bold font-mono text-slate-700 dark:text-slate-200">-</div>
+            </div>
+            <div class="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+              <div class="text-[10px] font-semibold uppercase text-slate-400">Rango [A]</div>
+              <div id="diag-rank-a" class="text-sm font-bold font-mono text-slate-700 dark:text-slate-200">-</div>
+            </div>
+            <div class="p-2.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl">
+              <div class="text-[10px] font-semibold uppercase text-slate-400">Rango [A|B]</div>
+              <div id="diag-rank-aug" class="text-sm font-bold font-mono text-slate-700 dark:text-slate-200">-</div>
+            </div>
+          </div>
+
+          <div id="solution-summary-box" class="mt-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hidden w-full overflow-hidden space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+              <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-500"></i> Vector Solución Resultante $X$:
+            </h3>
+            <div id="solution-vector-output" class="font-mono text-sm font-semibold text-emerald-600 dark:text-emerald-400 overflow-x-auto py-1 whitespace-normal break-words"></div>
+            <div id="method-applicability" class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2" aria-live="polite"></div>
+            <div class="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+              <button type="button" onclick="compareMethods()" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center justify-center gap-2"><i data-lucide="scale" class="w-4 h-4"></i> Comparar los cuatro métodos</button>
+              <p class="text-[10px] text-slate-500">La comparación verifica aplicabilidad, coincidencia numérica y residuo. Los tiempos son orientativos y dependen del dispositivo.</p>
+              <div id="method-comparison-output" class="hidden" aria-live="polite"></div>
+            </div>
+            
+            <!-- AI PROBLEM SOLUTION EXPLANATION IN RESULTS BOX -->
+            <div id="ai-results-explanation-box" class="hidden pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2">
+              <div class="font-bold text-xs text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-4 h-4 text-indigo-500"></i> Explicación Didáctica del Planteamiento y Respuesta:
+              </div>
+              <div id="ai-results-explanation-text" class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-indigo-50/60 dark:bg-indigo-950/40 p-3 rounded-lg border border-indigo-200/80 dark:border-indigo-800/80"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 2: STEP BY STEP BREAKDOWN -->
+    <div id="section-steps" class="hidden space-y-4">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 print-full">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="list-ordered" class="w-5 h-5 text-sky-500"></i>
+            <h2 class="font-bold text-base text-slate-800 dark:text-slate-100">Desglose Explicativo Paso a Paso</h2>
+          </div>
+          <div class="flex items-center gap-2 no-print">
+            <button onclick="toggleDetailedArithmetic()" id="btn-detailed-arithmetic" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-100 hover:bg-emerald-200 text-emerald-900 dark:bg-emerald-950 dark:hover:bg-emerald-900 dark:text-emerald-200 rounded-lg border border-emerald-300 dark:border-emerald-700 transition shadow-sm">
+              <i data-lucide="calculator" class="w-4 h-4"></i>
+              <span id="label-detailed-toggle">Desglose Aritmético: OFF</span>
+            </button>
+            <button onclick="copySolutionLatex()" class="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-lg transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Texto LaTeX
+            </button>
+          </div>
+        </div>
+
+        <div id="steps-container" class="space-y-4">
+          <div class="text-center py-12 text-slate-400 text-xs">
+            <i data-lucide="arrow-left-circle" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+            Selecciona un método en el Editor para generar la explicación paso a paso.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: REGLA DE SARRUS (3x3 DETERMINANTS) -->
+    <div id="section-sarrus" class="hidden space-y-4">
+      <div class="bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 print-full">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
+          <div class="flex items-center gap-2">
+            <i data-lucide="grid" class="w-5 h-5 text-indigo-500"></i>
+            <div>
+              <h2 class="font-bold text-base text-slate-800 dark:text-slate-100">Cálculo de Determinante por la Regla de Sarrus ($3 \times 3$)</h2>
+              <p class="text-xs text-slate-500">Desglose formal de diagonales descendentes (principales) y ascendentes (secundarias).</p>
+            </div>
+          </div>
+          <button onclick="generateSarrusBreakdown()" class="no-print px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold transition">
+            Recalcular Sarrus
+          </button>
+        </div>
+
+        <div id="sarrus-container" class="space-y-4">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ENGINEERING CASE STUDY PRESETS MODAL -->
+  <div id="presets-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col">
+      <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="briefcase" class="w-5 h-5 text-indigo-500"></i>
+          <h3 class="font-bold text-base text-slate-800 dark:text-slate-100">Casos Prácticos de Aplicación</h3>
+        </div>
+        <button onclick="closePresetsModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs">
+        <div onclick="loadPreset(0)" class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500 bg-slate-50 dark:bg-slate-800/40 cursor-pointer transition space-y-2 group">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-sky-600">1. Balance de Materia Química (Mezclas)</span>
+            <span class="px-2 py-0.5 bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 rounded font-semibold text-[10px]">3x3</span>
+          </div>
+          <p class="text-slate-600 dark:text-slate-300">Mezcla de tres componentes para producción química industrial.</p>
+        </div>
+
+        <div onclick="loadPreset(1)" class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500 bg-slate-50 dark:bg-slate-800/40 cursor-pointer transition space-y-2 group">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-sky-600">2. Análisis de Corrientes en Mallas (Kirchhoff)</span>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded font-semibold text-[10px]">3x3</span>
+          </div>
+          <p class="text-slate-600 dark:text-slate-300">Resolución de leyes de voltaje en circuito eléctrico de 3 mallas.</p>
+        </div>
+
+        <div onclick="loadPreset(2)" class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-sky-500 bg-slate-50 dark:bg-slate-800/40 cursor-pointer transition space-y-2 group">
+          <div class="flex justify-between items-center">
+            <span class="font-bold text-sm text-slate-800 dark:text-slate-100 group-hover:text-sky-600">3. Plan de producción de un taller</span>
+            <span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded font-semibold text-[10px]">3x3</span>
+          </div>
+          <p class="text-slate-600 dark:text-slate-300">Determina cantidades de tres productos con restricciones de horas de máquina. Datos didácticos simulados.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION TOAST -->
+  <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center gap-2 translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <i data-lucide="info" class="w-4 h-4 text-sky-400"></i>
+    <span id="toast-msg">Mensaje de prueba</span>
+  </div>
+
+  <!-- JAVASCRIPT APPLICATION CORE -->
+  <!-- Núcleo matemático (sin DOM): orden importante -->
+  <script src="js/core/numbers.js"></script>
+  <script src="js/core/equation-parser.js"></script>
+  <script src="js/core/row-reduction.js"></script>
+  <script src="js/core/matrix-ops.js"></script>
+  <!-- Estado, interfaz y presentación -->
+  <script src="js/01-state.js"></script>
+<script src="js/02-interface.js"></script>
+<script src="js/03-input.js"></script>
+<script src="js/04-tutor.js"></script>
+<script src="js/05-linear-algebra.js"></script>
+<script src="js/06-methods.js"></script>
+<script src="js/07-results.js"></script>
+</body>
+</html>

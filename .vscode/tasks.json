@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Iniciar servidor (python main.py)",
+      "type": "shell",
+      "command": "python main.py",
+      "group": { "kind": "build", "isDefault": true },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Correr pruebas",
+      "type": "shell",
+      "command": "node --test tests/engine.test.js",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Revisar sintaxis JS",
+      "type": "shell",
+      "command": "node -e \"const fs=require('fs'),cp=require('child_process');for(const f of [...fs.readdirSync('js').filter(x=>x.endsWith('.js')).map(x=>'js/'+x),...fs.readdirSync('js/core').map(x=>'js/core/'+x)]){cp.execSync('node --check '+f,{stdio:'inherit'})}console.log('Sintaxis OK')\"",
+      "problemMatcher": []
+    }
+  ]
+}

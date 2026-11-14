@@ -1,0 +1,10 @@
+{
+  "name": "matrizsolve",
+  "version": "2.0.0",
+  "description": "Aplicación web educativa para resolver sistemas de ecuaciones lineales",
+  "private": true,
+  "scripts": {
+    "start": "python main.py",
+    "test": "node --test tests/engine.test.js"
+  }
+}
